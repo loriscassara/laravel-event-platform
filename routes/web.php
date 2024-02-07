@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\TagController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +27,8 @@ Route::middleware(['auth'])
     ->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('projects', ProjectController::class);
-    Route::resource('posts', EventController::class);
+    Route::resource('events', EventController::class);
+    Route::resource('tags', TagController::class);
 });
 
 require __DIR__ .'/auth.php';

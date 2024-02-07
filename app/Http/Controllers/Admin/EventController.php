@@ -4,11 +4,29 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Http\Requests\StoreEventRequest;
-use App\Http\Requests\UpdateEventRequest;
+use App\Http\Requests\EventRequest;
+use Illuminate\Support\Facades\Validator;
 
 class EventController extends Controller
 {
+    public function validation($data)
+    {
+        $validated = Validator::make(
+            $data,
+            [
+                "name" => "required|min:5|max:50",
+                "date" => "required",
+                "available_tickets" => "max:500"
+            ],
+            [
+                'title.required' => 'Il titolo è necessario',
+                'date.required' => 'La data è necessaria'
+            ]
+        )->validate();
+
+        return $validated;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +34,10 @@ class EventController extends Controller
      */
     public function index()
     {
-        //
+        $events = Event::all();
+
+        
+        return view("admin.events.index", compact("events"));
     }
 
     /**
@@ -26,7 +47,9 @@ class EventController extends Controller
      */
     public function create()
     {
-        //
+        
+        
+        return view("admin.events.create");
     }
 
     /**
@@ -35,9 +58,18 @@ class EventController extends Controller
      * @param  \App\Http\Requests\StoreEventRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreEventRequest $request)
+    public function store(EventRequest $request)
     {
-        //
+        $data = $request->all();
+        $dati_validati = $this->validation($data);
+
+        $evento = new Event();
+
+        $evento->fill($dati_validati);
+        $evento->save();
+
+        
+        return redirect()->route("admin.events.show", $evento->id);
     }
 
     /**
@@ -48,7 +80,9 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        //
+        
+
+        return view("admin.events.show", compact("event"));
     }
 
     /**
@@ -59,7 +93,9 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
-        //
+        
+        
+        return view("admin.events.edit", compact("event"));
     }
 
     /**
@@ -69,9 +105,14 @@ class EventController extends Controller
      * @param  \App\Models\Event  $event
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateEventRequest $request, Event $event)
+    public function update(EventRequest $request, Event $event)
     {
-        //
+        $data = $request->all();
+        $dati_validati = $this->validation($data);
+        $event->update($dati_validati);
+
+        
+        return redirect()->route("admin.events.show", $event->id);
     }
 
     /**
@@ -82,6 +123,9 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
-        //
+        $event->delete();
+
+        
+        return redirect()->route("admin.events.index");
     }
 }
