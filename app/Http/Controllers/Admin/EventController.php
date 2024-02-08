@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Http\Requests\EventRequest;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Tag;
 
 class EventController extends Controller
 {
@@ -35,9 +36,10 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::all();
+        $tags = Tag::all();
 
         
-        return view("admin.events.index", compact("events"));
+        return view("admin.events.index", compact("events", "tags"));
     }
 
     /**
@@ -47,9 +49,10 @@ class EventController extends Controller
      */
     public function create()
     {
+        $tags = Tag::all();
+
         
-        
-        return view("admin.events.create");
+        return view("admin.events.create", compact("tags"));
     }
 
     /**
@@ -68,6 +71,10 @@ class EventController extends Controller
         $evento->fill($dati_validati);
         $evento->save();
 
+        if ($request->tags) {
+            $evento->tags()->attach($request->tags);
+        }
+
         
         return redirect()->route("admin.events.show", $evento->id);
     }
@@ -80,9 +87,10 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
+        $tags = Tag::all();
         
 
-        return view("admin.events.show", compact("event"));
+        return view("admin.events.show", compact("event", "tags"));
     }
 
     /**
@@ -93,9 +101,10 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
+        $tags = Tag::all();
+
         
-        
-        return view("admin.events.edit", compact("event"));
+        return view("admin.events.edit", compact("event", "tags"));
     }
 
     /**
@@ -107,9 +116,12 @@ class EventController extends Controller
      */
     public function update(EventRequest $request, Event $event)
     {
-        $data = $request->all();
-        $dati_validati = $this->validation($data);
-        $event->update($dati_validati);
+        $data = $request->validated();
+        $event->update($data);
+        if ($request->filled("tags")) {
+            $data["tags"] = array_filter($data["tags"]) ? $data["tags"] : [];  //Livecoding con Luca
+            $event->tags()->sync($data["tags"]);
+        }
 
         
         return redirect()->route("admin.events.show", $event->id);
